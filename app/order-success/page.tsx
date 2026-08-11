@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
 
-export default function OrderSuccessPage() {
+import { Suspense } from "react"
+import { useSearchParams } from "next/navigation"
+function OrderSuccessContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get("order")
 
@@ -16,11 +17,11 @@ export default function OrderSuccessPage() {
 
           <div>
             <h1 className="text-2xl font-black">
-              MANFE
+              MANFE<span className="text-red-600">.</span>
             </h1>
 
             <p className="text-xs font-bold tracking-[0.3em] text-red-600">
-              AUTOPARTS
+              AUTOPARTS & ACCESSORIES
             </p>
           </div>
 
@@ -135,5 +136,21 @@ export default function OrderSuccessPage() {
       </section>
 
     </main>
+  )
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-zinc-100">
+          <div className="text-sm font-bold text-zinc-500">
+            Loading order...
+          </div>
+        </main>
+      }
+    >
+      <OrderSuccessContent />
+    </Suspense>
   )
 }
