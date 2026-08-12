@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase"
 type Category = {
   id: string
   name: string
+  parent_id: string | null
 }
 
 export default function AdminProductsPage() {
@@ -22,6 +23,8 @@ export default function AdminProductsPage() {
   const [vehicleModel, setVehicleModel] = useState("")
   const [yearFrom, setYearFrom] = useState("")
   const [yearTo, setYearTo] = useState("")
+  const [selectedYears, setSelectedYears] = useState<number[]>([])
+  const [availableYears, setAvailableYears] = useState<number[]>([])
 type VehicleMake = {
   id: string
   name: string
@@ -57,7 +60,7 @@ const [vehicleMakes, setVehicleMakes] = useState<VehicleMake[]>([])
     async function loadCategories() {
       const { data, error } = await supabase
         .from("categories")
-        .select("id, name")
+        .select("id, name, parent_id")
         .order("name", { ascending: true })
 
       if (error) {
@@ -67,7 +70,36 @@ const [vehicleMakes, setVehicleMakes] = useState<VehicleMake[]>([])
         return
       }
 
-      setCategories(data || [])
+      console.log("CATEGORIES:", data)
+
+const allCategories = data || []
+
+const parents = allCategories.filter(
+  (cat) => !cat.parent_id
+)
+
+const children = allCategories.filter(
+  (cat) => cat.parent_id
+)
+
+const orderedCategories: Category[] = []
+
+parents
+  .sort((a, b) => a.name.localeCompare(b.name))
+  .forEach((parent) => {
+    orderedCategories.push(parent)
+
+    children
+      .filter((child) => child.parent_id === parent.id)
+      .sort((a, b) =>
+        a.name.localeCompare(b.name)
+      )
+      .forEach((child) => {
+        orderedCategories.push(child)
+      })
+  })
+
+setCategories(orderedCategories)
     }
 
     loadCategories()
@@ -91,7 +123,77 @@ useEffect(() => {
   loadVehicleMakes()
 }, [])
 
+useEffect(() => {
+  async function loadModelYears() {
 
+    if (!vehicleMake || !vehicleModel) {
+      setAvailableYears([])
+      return
+    }
+
+    const { data: makeData, error: makeError } =
+      await supabase
+        .from("vehicle_makes")
+        .select("id")
+        .eq("name", vehicleMake.trim())
+        .maybeSingle()
+
+    if (makeError) {
+      console.error("LOAD MAKE ERROR:", makeError)
+      return
+    }
+
+    if (!makeData) {
+      setAvailableYears([])
+      return
+    }
+
+
+    const { data: modelData, error: modelError } =
+      await supabase
+        .from("vehicle_models")
+        .select("id")
+        .eq("make_id", makeData.id)
+        .eq("name", vehicleModel.trim())
+        .maybeSingle()
+
+
+    if (modelError) {
+      console.error("LOAD MODEL ERROR:", modelError)
+      return
+    }
+
+
+    if (!modelData) {
+      setAvailableYears([])
+      return
+    }
+
+
+    const { data: yearsData, error: yearsError } =
+      await supabase
+        .from("vehicle_model_years")
+        .select("year")
+        .eq("model_id", modelData.id)
+        .order("year", { ascending: true })
+
+
+    if (yearsError) {
+      console.error("LOAD YEARS ERROR:", yearsError)
+      return
+    }
+
+
+    setAvailableYears(
+      yearsData?.map((item) => item.year) || []
+    )
+
+  }
+
+
+  loadModelYears()
+
+}, [vehicleMake, vehicleModel])
 
   function resetForm() {
     setName("")
@@ -325,7 +427,52 @@ if (vehicleMake.trim() && vehicleModel.trim()) {
   }
 
   console.log("VEHICLE FITMENT CREATED")
+
+// ---------------------------------------
+// Save selected vehicle years
+// ---------------------------------------
+
+if (selectedYears.length > 0) {
+
+  const { data: yearRows, error: yearError } =
+    await supabase
+      .from("vehicle_model_years")
+      .select("id, year")
+      .eq("model_id", modelData.id)
+      .in("year", selectedYears)
+
+
+  if (yearError) {
+    throw yearError
+  }
+
+
+  const productYears = yearRows.map((item) => ({
+    product_id: data.id,
+    model_year_id: item.id,
+  }))
+
+
+  const { error: productYearsError } =
+    await supabase
+      .from("product_vehicle_years")
+      .insert(productYears)
+
+
+  if (productYearsError) {
+    throw productYearsError
+  }
+
+
+  console.log("PRODUCT YEARS SAVED")
 }
+
+
+}
+
+
+
+
 
 setMessage("Product saved successfully.")
 setMessageType("success")
@@ -356,6 +503,11 @@ setMessageType("success")
     }
   }
 
+
+
+
+
+  
   return (
     <main className="min-h-screen bg-zinc-100 text-zinc-900">
 
@@ -586,23 +738,73 @@ setMessageType("success")
               </div>
 
               {/* Year To */}
-              <div>
-                <label className="mb-2 block text-sm font-bold">
-                  Year To
-                </label>
+{/* Year To */}
+<div>
+  <label className="mb-2 block text-sm font-bold">
+    Year To
+  </label>
 
-                <input
-                  type="number"
-                  min="1900"
-                  max="2100"
-                  value={yearTo}
-                  onChange={(e) =>
-                    setYearTo(e.target.value)
-                  }
-                  placeholder="2024"
-                  className="w-full rounded-xl border border-zinc-300 px-4 py-3 outline-none transition focus:border-red-600 focus:ring-2 focus:ring-red-100"
-                />
-              </div>
+  <input
+    type="number"
+    min="1900"
+    max="2100"
+    value={yearTo}
+    onChange={(e) =>
+      setYearTo(e.target.value)
+    }
+    placeholder="2024"
+    className="w-full rounded-xl border border-zinc-300 px-4 py-3 outline-none transition focus:border-red-600 focus:ring-2 focus:ring-red-100"
+  />
+</div>
+
+
+{/* Compatible Years */}
+<div className="sm:col-span-2 lg:col-span-4">
+
+  <label className="mb-2 block text-sm font-bold">
+    Compatible Years
+  </label>
+
+  <div className="grid grid-cols-4 gap-3 rounded-xl border border-zinc-200 p-4">
+
+    {availableYears.map((year) => (
+      <label
+        key={year}
+        className="flex items-center gap-2 rounded-lg bg-zinc-50 p-3 cursor-pointer"
+      >
+
+        <input
+          type="checkbox"
+          checked={selectedYears.includes(year)}
+          onChange={(e) => {
+
+            if (e.target.checked) {
+              setSelectedYears([
+                ...selectedYears,
+                year
+              ])
+            } else {
+              setSelectedYears(
+                selectedYears.filter(
+                  (item) => item !== year
+                )
+              )
+            }
+
+          }}
+          className="h-4 w-4 accent-red-600"
+        />
+
+        <span className="text-sm font-bold">
+          {year}
+        </span>
+
+      </label>
+    ))}
+
+  </div>
+
+</div>
 
             </div>
           </div>
@@ -638,14 +840,19 @@ setMessageType("success")
                     Select category
                   </option>
 
-                  {categories.map((category) => (
-                    <option
-                      key={category.id}
-                      value={category.id}
-                    >
-                      {category.name}
-                    </option>
-                  ))}
+{categories.map((category) => (
+<option
+  key={category.id}
+  value={category.id}
+  disabled={
+    !category.parent_id &&
+    categories.some((child) => child.parent_id === category.id)
+  }
+>
+  {category.parent_id ? "   └── " : ""}
+  {category.name}
+</option>
+))}
                 </select>
 
               </div>
