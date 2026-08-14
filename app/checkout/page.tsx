@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
+import { createSupabaseBrowserClient } from "@/lib/supabase-browser"
 
 type CartItem = {
   id: string
@@ -13,28 +13,86 @@ type CartItem = {
   quantity: number
 }
 
+type Profile = {
+  full_name: string | null
+  phone: string | null
+  email: string | null
+}
+
 export default function CheckoutPage() {
   const router = useRouter()
+  const supabase = createSupabaseBrowserClient()
 
   const [cart, setCart] = useState<CartItem[]>([])
+
   const [name, setName] = useState("")
   const [phone, setPhone] = useState("")
   const [location, setLocation] = useState("")
 
+  const [loading, setLoading] = useState(true)
   const [placingOrder, setPlacingOrder] = useState(false)
   const [orderError, setOrderError] = useState("")
 
   useEffect(() => {
-    const savedCart = localStorage.getItem("manfe-cart")
-
-    if (savedCart) {
+    async function loadCheckout() {
       try {
-        setCart(JSON.parse(savedCart))
-      } catch {
-        setCart([])
+        // --------------------------------------------------
+        // CHECK AUTHENTICATION
+        // --------------------------------------------------
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+          router.replace("/login?redirect=/checkout")
+          return
+        }
+
+        // --------------------------------------------------
+        // LOAD CART
+        // --------------------------------------------------
+
+        const savedCart = localStorage.getItem("manfe-cart")
+
+        if (savedCart) {
+          try {
+            setCart(JSON.parse(savedCart))
+          } catch {
+            setCart([])
+          }
+        }
+
+        // --------------------------------------------------
+        // LOAD CUSTOMER PROFILE
+        // --------------------------------------------------
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, phone, email")
+          .eq("id", user.id)
+          .maybeSingle()
+
+        if (profile) {
+          setName(profile.full_name || "")
+          setPhone(profile.phone || "")
+        }
+
+      } catch (error) {
+        console.error("CHECKOUT LOAD ERROR:", error)
+
+        setOrderError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load checkout."
+        )
+      } finally {
+        setLoading(false)
       }
     }
-  }, [])
+
+    loadCheckout()
+  }, [router, supabase])
 
   const total = cart.reduce(
     (sum, item) =>
@@ -44,6 +102,23 @@ export default function CheckoutPage() {
 
   async function placeOrder() {
     setOrderError("")
+
+    // --------------------------------------------------
+    // CHECK AUTH AGAIN
+    // --------------------------------------------------
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      router.push("/login?redirect=/checkout")
+      return
+    }
+
+    // --------------------------------------------------
+    // VALIDATION
+    // --------------------------------------------------
 
     if (!name.trim()) {
       setOrderError("Please enter your full name.")
@@ -56,7 +131,9 @@ export default function CheckoutPage() {
     }
 
     if (!location.trim()) {
-      setOrderError("Please enter your delivery or pickup location.")
+      setOrderError(
+        "Please enter your delivery or pickup location."
+      )
       return
     }
 
@@ -71,9 +148,16 @@ export default function CheckoutPage() {
       const items = cart.map((item) => ({
         id: item.id,
         name: item.name,
-        quantity: item.quantity,
+        quantity: Number(item.quantity),
         price: Number(item.price),
       }))
+
+      // --------------------------------------------------
+      // CREATE AUTHENTICATED ORDER
+      //
+      // The database function uses auth.uid()
+      // to set orders.customer_id.
+      // --------------------------------------------------
 
       const { data, error } = await supabase.rpc(
         "create_guest_order",
@@ -87,17 +171,36 @@ export default function CheckoutPage() {
       )
 
       if (error) {
-        console.error("SUPABASE ORDER ERROR:", error)
+        console.error(
+          "SUPABASE ORDER ERROR:",
+          error
+        )
+
         throw new Error(error.message)
       }
 
-      console.log("ORDER CREATED:", data)
+      console.log(
+        "AUTHENTICATED ORDER CREATED:",
+        data
+      )
+
+      // --------------------------------------------------
+      // CLEAR CART
+      // --------------------------------------------------
 
       localStorage.removeItem("manfe-cart")
 
+      // --------------------------------------------------
+      // GO TO SUCCESS PAGE
+      // --------------------------------------------------
+
       router.push(`/order-success?order=${data}`)
+
     } catch (error) {
-      console.error("PLACE ORDER ERROR:", error)
+      console.error(
+        "PLACE ORDER ERROR:",
+        error
+      )
 
       setOrderError(
         error instanceof Error
@@ -109,21 +212,50 @@ export default function CheckoutPage() {
     }
   }
 
+  // ------------------------------------------------------
+  // LOADING
+  // ------------------------------------------------------
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-zinc-100">
+
+        <div className="text-center">
+
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-red-600" />
+
+          <p className="mt-4 text-sm font-bold text-zinc-500">
+            Loading checkout...
+          </p>
+
+        </div>
+
+      </main>
+    )
+  }
+
+  // ------------------------------------------------------
+  // CHECKOUT
+  // ------------------------------------------------------
+
   return (
     <main className="min-h-screen bg-zinc-100 text-zinc-900">
 
       {/* Header */}
       <header className="border-b border-zinc-200 bg-white">
+
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
 
           <div>
+
             <h1 className="text-2xl font-black">
-              MANFE
+              MANFE<span className="text-red-600">.</span>
             </h1>
 
             <p className="text-xs font-bold tracking-[0.3em] text-red-600">
               AUTOPARTS
             </p>
+
           </div>
 
           <Link
@@ -134,6 +266,7 @@ export default function CheckoutPage() {
           </Link>
 
         </div>
+
       </header>
 
       {/* Checkout */}
@@ -150,7 +283,8 @@ export default function CheckoutPage() {
           </h2>
 
           <p className="mt-3 text-zinc-500">
-            Enter your details to place your MANFE AUTOPARTS order.
+            Enter your delivery details to place your MANFE
+            AUTOPARTS order.
           </p>
 
         </div>
@@ -164,6 +298,10 @@ export default function CheckoutPage() {
               Customer Details
             </h3>
 
+            <p className="mt-2 text-sm text-zinc-500">
+              Your account information has been loaded automatically.
+            </p>
+
             <div className="mt-6 space-y-5">
 
               {/* Name */}
@@ -176,8 +314,11 @@ export default function CheckoutPage() {
                 <input
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) =>
+                    setName(e.target.value)
+                  }
                   placeholder="Enter your full name"
+                  autoComplete="name"
                   className="w-full rounded-xl border border-zinc-300 px-4 py-3 outline-none transition focus:border-red-600"
                 />
 
@@ -193,8 +334,11 @@ export default function CheckoutPage() {
                 <input
                   type="tel"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) =>
+                    setPhone(e.target.value)
+                  }
                   placeholder="07XXXXXXXX"
+                  autoComplete="tel"
                   className="w-full rounded-xl border border-zinc-300 px-4 py-3 outline-none transition focus:border-red-600"
                 />
 
@@ -209,7 +353,9 @@ export default function CheckoutPage() {
 
                 <textarea
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={(e) =>
+                    setLocation(e.target.value)
+                  }
                   placeholder="Enter your location or delivery address"
                   rows={4}
                   className="w-full resize-none rounded-xl border border-zinc-300 px-4 py-3 outline-none transition focus:border-red-600"
@@ -252,7 +398,9 @@ export default function CheckoutPage() {
                       </p>
 
                       <p className="mt-1 text-xs text-zinc-400">
-                        KSh {Number(item.price).toLocaleString()} each
+                        KSh{" "}
+                        {Number(item.price).toLocaleString()}
+                        {" "}each
                       </p>
 
                       <p className="mt-1 text-xs text-zinc-400">
@@ -301,7 +449,10 @@ export default function CheckoutPage() {
             <button
               type="button"
               onClick={placeOrder}
-              disabled={placingOrder || cart.length === 0}
+              disabled={
+                placingOrder ||
+                cart.length === 0
+              }
               className="mt-6 w-full rounded-xl bg-red-600 px-5 py-4 font-black text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-zinc-600"
             >
               {placingOrder

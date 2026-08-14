@@ -20,23 +20,25 @@ export default function AddToCartButton({
 }) {
   const [added, setAdded] = useState(false)
 
-  function addToCart() {
-    const existingCart: CartItem[] = JSON.parse(
+  const isOutOfStock = product.stock_quantity <= 0
+
+  const handleAddToCart = () => {
+    const cart: CartItem[] = JSON.parse(
       localStorage.getItem("manfe-cart") || "[]"
     )
 
-    const existingProduct = existingCart.find(
-      (item) => item.id === product.id
+    const item = cart.find(
+      (i) => i.id === product.id
     )
 
-    if (existingProduct) {
-      if (existingProduct.quantity >= product.stock_quantity) {
+    if (item) {
+      if (item.quantity >= product.stock_quantity) {
         return
       }
 
-      existingProduct.quantity += 1
+      item.quantity += 1
     } else {
-      existingCart.push({
+      cart.push({
         ...product,
         quantity: 1,
       })
@@ -44,7 +46,12 @@ export default function AddToCartButton({
 
     localStorage.setItem(
       "manfe-cart",
-      JSON.stringify(existingCart)
+      JSON.stringify(cart)
+    )
+
+    // Tell the header/cart badge to update immediately
+    window.dispatchEvent(
+      new Event("cart-updated")
     )
 
     setAdded(true)
@@ -56,11 +63,16 @@ export default function AddToCartButton({
 
   return (
     <button
-      onClick={addToCart}
-      disabled={product.stock_quantity <= 0}
-      className="rounded-xl bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-zinc-300"
+      type="button"
+      onClick={handleAddToCart}
+      disabled={isOutOfStock}
+      className="w-full rounded-lg bg-zinc-900 py-2.5 text-xs font-semibold text-white transition-all hover:bg-zinc-800 active:scale-95 disabled:pointer-events-none disabled:bg-zinc-100 disabled:text-zinc-400"
     >
-      {added ? "ADDED ✓" : "ADD TO CART"}
+      {isOutOfStock
+        ? "Out of Stock"
+        : added
+          ? "Added ✓"
+          : "Add to Cart"}
     </button>
   )
 }

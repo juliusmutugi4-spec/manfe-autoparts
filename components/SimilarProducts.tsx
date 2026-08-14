@@ -20,55 +20,55 @@ export default function SimilarProducts({ products }: Props) {
   if (!products || products.length === 0) return null
 
   return (
-    <section className="mt-12 border-t border-zinc-100 pt-10 antialiased">
-      <h2 className="mb-6 text-base font-black uppercase tracking-wider text-zinc-950 sm:text-lg">
+    <section className="mt-8 border-t border-zinc-100 pt-6 antialiased">
+      <h2 className="mb-3.5 text-[11px] font-black uppercase tracking-widest text-zinc-400 sm:text-xs">
         Similar Products
       </h2>
 
-      {/* Grid: 4 columns on mobile, 4 columns on desktop */}
-      <div className="grid grid-cols-4 gap-2 sm:gap-4 md:grid-cols-4">
+      {/* Micro-spaced Grid */}
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-3">
         {products.map((product) => (
           <Link
             key={product.id}
             href={`/products/${product.slug}`}
-            className="group flex flex-col justify-between overflow-hidden rounded-xl border border-zinc-200 bg-white p-1.5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md sm:p-3"
+            className="group flex flex-col justify-between overflow-hidden rounded-lg border border-zinc-150 bg-white p-1 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-200 hover:border-zinc-300 hover:shadow-sm sm:p-2.5"
           >
             <div>
-              {/* Image Wrapper */}
-              <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-zinc-50 border border-zinc-100/50">
+              {/* Ultra-clean Image Wrapper */}
+              <div className="relative aspect-square w-full overflow-hidden rounded-md bg-zinc-50/70 border border-zinc-100">
                 {product.image_url ? (
                   <Image
                     src={product.image_url}
                     alt={`Photo of ${product.name}`}
                     fill
                     sizes="(max-w-640px) 25vw, 25vw"
-                    className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-105 sm:p-3"
+                    className="object-contain p-1 transition-transform duration-500 ease-out group-hover:scale-102 sm:p-2"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-zinc-300">
-                    <span className="text-xl sm:text-2xl" role="img" aria-label="Wrench icon">🔧</span>
+                  <div className="flex h-full w-full items-center justify-center bg-zinc-50 text-zinc-300">
+                    <span className="text-xs sm:text-sm opacity-60" role="img" aria-label="Wrench icon">🔧</span>
                   </div>
                 )}
               </div>
 
-              {/* Product Info */}
-              <div className="mt-2 px-0.5">
+              {/* Product Info with Micro-Typography */}
+              <div className="mt-1.5 px-0.5">
                 {product.brand && (
-                  <p className="text-[8px] font-black uppercase tracking-wider text-red-600 sm:text-[10px]">
+                  <p className="text-[7px] font-extrabold uppercase tracking-widest text-red-600 sm:text-[9px]">
                     {product.brand}
                   </p>
                 )}
 
-                <h3 className="mt-0.5 line-clamp-2 text-[10px] font-bold leading-tight text-zinc-800 transition-colors group-hover:text-red-600 sm:text-xs sm:leading-normal">
+                <h3 className="mt-0.5 line-clamp-2 text-[9px] font-medium leading-tight text-zinc-700 transition-colors group-hover:text-red-600 sm:text-[11px] sm:leading-snug">
                   {product.name}
                 </h3>
               </div>
             </div>
 
             {/* Price section anchored to bottom */}
-            <div className="mt-2 px-0.5 pb-0.5">
-              <p className="text-xs font-black tracking-tight text-zinc-950 tabular-nums sm:text-sm">
-                <span className="text-[9px] font-bold text-zinc-500 mr-0.5 sm:text-xs">KSh</span>
+            <div className="mt-1.5 px-0.5 pb-0.5">
+              <p className="text-[10px] font-bold tracking-tight text-zinc-900 tabular-nums sm:text-xs">
+                <span className="text-[7.5px] font-medium text-zinc-400 mr-0.5 sm:text-[9px]">KSh</span>
                 {Number(product.price).toLocaleString()}
               </p>
             </div>

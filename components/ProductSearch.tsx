@@ -1,8 +1,9 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import AddToCartButton from "@/components/AddToCartButton"
 import ProductCard from "@/components/ProductCard"
+import ProductSearchBar from "@/components/ProductSearchBar"
+
 type Product = {
   id: string
   name: string
@@ -30,17 +31,13 @@ type Props = {
   products: Product[]
 }
 
-export default function ProductSearch({
-  products,
-}: Props) {
+export default function ProductSearch({ products }: Props) {
   const [search, setSearch] = useState("")
 
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLowerCase()
 
-    if (!query) {
-      return products
-    }
+    if (!query) return products
 
     return products.filter((product) => {
       const searchableText = [
@@ -72,37 +69,15 @@ export default function ProductSearch({
     <div>
 
       {/* SEARCH BAR */}
-      <div className="relative mx-auto mb-6 max-w-3xl">
+     <ProductSearchBar
+  value={search}
+  onChange={setSearch}
+/>
 
-        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg text-zinc-400">
-          🔍
-        </span>
-
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search parts, brands, vehicles, part numbers..."
-          className="w-full rounded-2xl border border-zinc-200 bg-white py-4 pl-12 pr-12 text-sm font-medium shadow-sm outline-none transition focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
-        />
-
-        {search && (
-          <button
-            type="button"
-            onClick={() => setSearch("")}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-black text-zinc-400 hover:text-red-600"
-          >
-            ✕
-          </button>
-        )}
-
-      </div>
-
-      {/* SEARCH RESULT COUNT */}
+      {/* RESULT COUNT */}
       <div className="mb-6 flex items-center justify-between">
 
         <p className="text-sm font-bold text-zinc-500">
-
           {search ? (
             <>
               Showing{" "}
@@ -110,8 +85,7 @@ export default function ProductSearch({
                 {filteredProducts.length}
               </span>{" "}
               result
-              {filteredProducts.length === 1 ? "" : "s"}{" "}
-              for{" "}
+              {filteredProducts.length === 1 ? "" : "s"} for{" "}
               <span className="font-black text-red-600">
                 "{search}"
               </span>
@@ -119,13 +93,9 @@ export default function ProductSearch({
           ) : (
             <>
               {products.length}{" "}
-              {products.length === 1
-                ? "product"
-                : "products"}{" "}
-              available
+              {products.length === 1 ? "product" : "products"} available
             </>
           )}
-
         </p>
 
         {search && (
@@ -171,16 +141,8 @@ export default function ProductSearch({
       ) : (
 
         /* PRODUCT GRID */
-        <div className="
-          grid 
-          grid-cols-5 
-          xs:grid-cols-2 
-          sm:grid-cols-3 
-          md:grid-cols-4 
-          lg:grid-cols-5 
-          gap-1.5 
-          sm:gap-3
-        ">
+        <div className="grid grid-cols-5 gap-1.5 xs:grid-cols-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5">
+
           {filteredProducts.map((product) => (
             <ProductCard
               key={product.id}
@@ -195,9 +157,8 @@ export default function ProductSearch({
               }}
             />
           ))}
+
         </div>
-
-
       )}
 
     </div>

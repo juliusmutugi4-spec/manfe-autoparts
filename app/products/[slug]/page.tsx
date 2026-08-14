@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import SimilarProducts from "@/components/SimilarProducts"
+import AddToCartButton from "@/components/AddToCartButton"
 // Define strict types for the Supabase response
 interface Category {
   id: string;
@@ -206,12 +207,14 @@ border-zinc-100
                 </p>
               )}
               
-              <button
-                disabled={isOutOfStock}
-                className="w-full rounded-xl bg-zinc-950 px-6 py-4 text-sm font-black text-white uppercase tracking-wider transition-all duration-200 hover:bg-red-600 active:scale-[0.99] disabled:pointer-events-none disabled:bg-zinc-200 disabled:text-zinc-400 shadow-sm"
-              >
-                {isOutOfStock ? "OUT OF STOCK" : "ADD TO CART"}
-              </button>
+<AddToCartButton
+  product={{
+    id: product.id,
+    name: product.name,
+    price: Number(product.price),
+    stock_quantity: product.stock_quantity,
+  }}
+/>
             </div>
 
           </div>

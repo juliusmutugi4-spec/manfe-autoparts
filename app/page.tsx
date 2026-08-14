@@ -3,14 +3,17 @@ import { supabase } from "@/lib/supabase"
 import AddToCartButton from "@/components/AddToCartButton"
 import ProductSearch from "@/components/ProductSearch"
 import VehicleFinder from "@/components/VehicleFinder"
+import HeroSection from "@/components/HeroSection"
+import Footer from "@/components/Footer"
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{
-    make?: string
-    model?: string
-    year?: string
-  }>
+searchParams: Promise<{
+  make?: string
+  model?: string
+  year?: string
+  q?: string
+}>
 }) {
   const params = await searchParams
 
@@ -19,6 +22,11 @@ export default async function Home({
   const selectedYear = params.year
     ? Number(params.year)
     : null
+
+
+const searchQuery = params.q?.trim() || ""
+
+
 
   const { data: allProducts, error } = await supabase
     .from("products")
@@ -122,9 +130,10 @@ if (selectedMake || selectedModel || selectedYear) {
     }
   }
 }
+
+
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-900 antialiased">
-
       {/* ========================================================= */}
       {/* TOP BANNER */}
       {/* ========================================================= */}
@@ -135,169 +144,18 @@ if (selectedMake || selectedModel || selectedYear) {
         CALL OR WHATSAPP TO ORDER
       </div>
 
-      {/* ========================================================= */}
-      {/* HEADER */}
-      {/* ========================================================= */}
-
-      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-5 py-4 sm:px-6">
-
-{/* MANFE BRAND LOGO */} 
-<div className="flex shrink-0 items-center gap-4">
-  {/* DOUBLE-LINE MAA STAR */} 
-  <svg 
-    viewBox="0 0 110 110" 
-    className="h-16 w-16 shrink-0 transition-transform duration-300 hover:scale-105 sm:h-20 sm:w-20" 
-    aria-label="MANFE MAA logo" 
-  >
-    {/* OUTER STAR (Base Structure) */} 
-    <path 
-      d="M55 5 L69 40 L105 40 L77 62 L88 105 L55 84 L22 105 L33 62 L5 40 L41 40 Z" 
-      fill="#ffffff" 
-      stroke="#09090b" 
-      strokeWidth="6" 
-      strokeLinejoin="round" 
-    />
-
-    {/* INNER RED STAR (Precision Accent) */} 
-    <path 
-      d="M55 16 L65 44 L95 44 L71 61 L80 91 L55 74 L30 91 L39 61 L15 44 L45 44 Z" 
-      fill="none" 
-      stroke="#dc2626" 
-      strokeWidth="3.5" 
-      strokeLinejoin="round" 
-    />
-
-    {/* ============================================================== */}
-    {/* 🎯 CENTRAL HUB: HIGH-CONTRAST BADGE CENTERED AT (55, 55)         */}
-    {/* ============================================================== */}
-    <circle cx="55" cy="55" r="16" fill="#09090b" />
-    
-    {/* Precision Core Accent Ring */}
-    <circle cx="55" cy="55" r="14" fill="none" stroke="#dc2626" strokeWidth="1.5" />
-
-    {/* 🔤 M A A — UNIFIED COHESIVE CENTER BLOCK */} 
-    <text 
-      x="55" 
-      y="55" 
-      textAnchor="middle" 
-      dominantBaseline="central" 
-      fontSize="11" 
-      fontWeight="950" 
-      fill="#ffffff" 
-      className="font-sans select-none tracking-wider"
-    >
-      MAA
-    </text>
-  </svg>
-
-  {/* WORDMARK */} 
-  <div className="flex flex-col justify-center">
-    <h1 className="text-xl font-black tracking-tighter text-zinc-950 sm:text-2xl">
-      MANFE<span className="text-red-600">.</span>
-    </h1>
-    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-red-600">
-      AUTOPARTS & ACCESSORIES
-    </p>
-  </div>
-</div>
-
-
-
-          {/* Search */}
-          <div className="hidden max-w-xl flex-1 md:block">
-            <div className="relative">
-
-
-
-            </div>
-          </div>
-
-          {/* Contact */}
-          <div className="flex items-center gap-3 sm:gap-5">
-
-            <div className="hidden text-right sm:block">
-              <p className="text-sm font-black text-zinc-950">
-                0722 921 017
-              </p>
-
-              <p className="text-xs text-zinc-500">
-                Industrial Area, Nairobi
-              </p>
-            </div>
-
-            <a
-              href="https://wa.me/254722921017"
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-xl bg-emerald-600 px-4 py-3 text-xs font-black text-white shadow-sm transition hover:bg-emerald-700"
-            >
-              <span className="mr-1">💬</span>
-              <span className="hidden sm:inline">
-                WHATSAPP
-              </span>
-              <span className="sm:hidden">
-                CHAT
-              </span>
-            </a>
-
-          </div>
-        </div>
-      </header>
 
       {/* ========================================================= */}
       {/* HERO */}
       {/* ========================================================= */}
-<section className="relative overflow-hidden bg-zinc-950 px-5 py-16 text-white sm:px-6 sm:py-24 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-zinc-900 via-zinc-950 to-black">
-  {/* Modern Technical Background Grid Overlay */}
-  <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-25" />
 
-  <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-12 lg:items-center">
-    {/* Hero Text Area */}
-    <div className="flex flex-col items-start lg:col-span-7">
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/10 px-3.5 py-1.5 text-xs font-black uppercase tracking-widest text-red-400 ring-1 ring-inset ring-red-500/20">
-        <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-        Premium Spares & Accessories
-      </span>
-      
-      <h2 className="mt-6 max-w-2xl text-4xl font-black leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-        Find the exact part for your <span className="text-red-500">vehicle.</span>
-      </h2>
-      
-      <p className="mt-6 max-w-xl text-base leading-relaxed text-zinc-400 sm:text-lg">
-        Nairobi's trusted catalog for commercial and personal automotive solutions. Browse genuine OEM and verified aftermarket spares with clear upfront pricing.
-      </p>
-      
-      <div className="mt-8 flex flex-wrap gap-4">
-        <a 
-          href="#products" 
-          className="rounded-xl bg-red-600 px-7 py-4 text-sm font-black tracking-wide text-white shadow-lg shadow-red-950/50 transition duration-200 hover:bg-red-700 hover:shadow-red-900/40"
-        >
-          BROWSE CATALOG
-        </a>
-        <a 
-          href="https://wa.me/254722921017" 
-          target="_blank" 
-          rel="noreferrer" 
-          className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/80 px-7 py-4 text-sm font-black text-white backdrop-blur-sm transition duration-200 hover:border-zinc-600 hover:bg-zinc-800"
-        >
-          <span>💬</span> ASK ABOUT A PART
-        </a>
-      </div>
-    </div>
-
-    {/* Part Finder Widget Container */}
-    <div className="w-full lg:col-span-5">
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-1 backdrop-blur-md shadow-2xl ring-1 ring-white/5">
-        <VehicleFinder products={products ?? []} />
-      </div>
-    </div>
-  </div>
-</section>
+      <HeroSection products={products} />
 
 {/* ========================================================= */}
 {/* PRODUCTS CATALOG SECTION */}
 {/* ========================================================= */}
+
+
 <section id="products" className="mx-auto max-w-7xl px-5 py-16 sm:px-6 lg:py-20">
   
   {/* Section Header Row */}
@@ -355,7 +213,7 @@ if (selectedMake || selectedModel || selectedYear) {
   {/* LIVE PRODUCT SEARCH COMPONENT GRID */}
   {/* ======================================================= */}
   <div className="mt-4">
-    <ProductSearch products={products ?? []} />
+<ProductSearch products={products ?? []} />
   </div>
 </section>
 
@@ -401,127 +259,7 @@ if (selectedMake || selectedModel || selectedYear) {
         </div>
 
       </section>
-
-      {/* ========================================================= */}
-      {/* FOOTER */}
-      {/* ========================================================= */}
-
-      <footer className="bg-zinc-950 px-5 py-12 text-white sm:px-6">
-
-        <div className="mx-auto max-w-7xl">
-
-          <div className="grid gap-10 md:grid-cols-3">
-
-            {/* Company */}
-            <div>
-
-              <h2 className="text-2xl font-black tracking-tight">
-                MANFE<span className="text-red-600">.</span>
-              </h2>
-
-              <p className="mt-2 text-sm text-zinc-400">
-                AUTOPARTS & SPARES
-              </p>
-
-              <p className="mt-5 max-w-sm text-sm leading-6 text-zinc-500">
-                Premium automotive parts and accessories for
-                vehicle owners, mechanics, and businesses in
-                Kenya.
-              </p>
-
-            </div>
-
-            {/* Location */}
-            <div>
-
-              <p className="text-xs font-black uppercase tracking-widest text-zinc-500">
-                Physical Store
-              </p>
-
-              <div className="mt-4 space-y-1 text-sm leading-6 text-zinc-400">
-
-                <p className="font-bold text-white">
-                  Baricho Business Centre
-                </p>
-
-                <p>
-                  Hombe Road, off Baricho Road
-                </p>
-
-                <p>
-                  Industrial Area, Nairobi, Kenya
-                </p>
-
-                <p>
-                  P.O. Box 8592-00300 Nairobi
-                </p>
-
-              </div>
-
-            </div>
-
-            {/* Contact */}
-            <div>
-
-              <p className="text-xs font-black uppercase tracking-widest text-zinc-500">
-                Contact
-              </p>
-
-              <div className="mt-4 space-y-2 text-sm text-zinc-400">
-
-                <p>
-                  📞{" "}
-                  <span className="font-bold text-white">
-                    0722 921 017
-                  </span>
-                </p>
-
-                <p>
-                  📍 Industrial Area, Nairobi
-                </p>
-
-                <p>
-                  🕒 Mon – Sat
-                </p>
-
-              </div>
-
-              <a
-                href="https://wa.me/254722921017"
-                target="_blank"
-                rel="noreferrer"
-                className="mt-5 inline-flex rounded-xl bg-emerald-600 px-5 py-3 text-xs font-black text-white transition hover:bg-emerald-700"
-              >
-                💬 CHAT ON WHATSAPP
-              </a>
-
-            </div>
-
-          </div>
-
-          {/* Bottom */}
-          <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
-
-            <p>
-              © {new Date().getFullYear()} MANFE AUTOPARTS.
-              All rights reserved.
-            </p>
-
-            <div className="flex gap-5">
-              <span>
-                Terms of Sale
-              </span>
-
-              <span>
-                Fitment Disclaimer
-              </span>
-            </div>
-
-          </div>
-
-        </div>
-
-         </footer>
+<Footer />
     </main>
   )
 }
