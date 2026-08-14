@@ -5,6 +5,7 @@ import ProductSearch from "@/components/ProductSearch"
 import VehicleFinder from "@/components/VehicleFinder"
 import HeroSection from "@/components/HeroSection"
 import Footer from "@/components/Footer"
+import VisualInventoryHeader from "@/components/VisualInventoryHeader"
 export default async function Home({
   searchParams,
 }: {
@@ -157,31 +158,8 @@ if (selectedMake || selectedModel || selectedYear) {
 
 
 <section id="products" className="mx-auto max-w-7xl px-5 py-16 sm:px-6 lg:py-20">
-  
-  {/* Section Header Row */}
-  <div className="mb-10 flex flex-col gap-4 border-b border-zinc-100 pb-6 sm:flex-row sm:items-end sm:justify-between">
-    <div>
-      <p className="text-xs font-black uppercase tracking-[0.25em] text-red-600">
-        Live Storage Inventory
-      </p>
-      <h2 className="mt-2 text-3xl font-black tracking-tight text-zinc-950 sm:text-4xl">
-        Verified Auto Spares
-      </h2>
-      <p className="mt-1 text-sm font-medium text-zinc-500">
-        Real-time availability directly from our Nairobi Industrial Area warehouse.
-      </p>
-    </div>
+  <VisualInventoryHeader products={products} />
 
-    {/* Elegant Product Count Badge */}
-    {products && products.length > 0 && (
-      <div className="inline-flex items-center gap-2 self-start rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-xs font-black text-zinc-700 shadow-sm sm:self-auto">
-        <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
-        <span>
-          {products.length} {products.length === 1 ? "PART AVAILABLE" : "PARTS TRACKED"}
-        </span>
-      </div>
-    )}
-  </div>
 
   {/* Network Connection Error Banner */}
   {error && (

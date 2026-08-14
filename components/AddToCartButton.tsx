@@ -22,7 +22,11 @@ export default function AddToCartButton({
 
   const isOutOfStock = product.stock_quantity <= 0
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    // Prevent navigating to the product page if clicked inside a linked card
+    e.stopPropagation()
+    e.preventDefault()
+
     const cart: CartItem[] = JSON.parse(
       localStorage.getItem("manfe-cart") || "[]"
     )
@@ -35,7 +39,6 @@ export default function AddToCartButton({
       if (item.quantity >= product.stock_quantity) {
         return
       }
-
       item.quantity += 1
     } else {
       cart.push({
@@ -49,7 +52,6 @@ export default function AddToCartButton({
       JSON.stringify(cart)
     )
 
-    // Tell the header/cart badge to update immediately
     window.dispatchEvent(
       new Event("cart-updated")
     )
@@ -58,21 +60,26 @@ export default function AddToCartButton({
 
     setTimeout(() => {
       setAdded(false)
-    }, 1500)
+    }, 1200)
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleAddToCart}
-      disabled={isOutOfStock}
-      className="w-full rounded-lg bg-zinc-900 py-2.5 text-xs font-semibold text-white transition-all hover:bg-zinc-800 active:scale-95 disabled:pointer-events-none disabled:bg-zinc-100 disabled:text-zinc-400"
-    >
-      {isOutOfStock
-        ? "Out of Stock"
-        : added
-          ? "Added ✓"
-          : "Add to Cart"}
-    </button>
+<button
+  type="button"
+  onClick={handleAddToCart}
+  disabled={isOutOfStock}
+  className="w-full rounded-[3px] bg-zinc-900 py-1 text-[8px] font-black uppercase tracking-widest text-white transition-all duration-150 hover:bg-zinc-800 active:scale-[0.96] disabled:pointer-events-none disabled:bg-zinc-100 disabled:text-zinc-400 sm:py-1.5 sm:text-[9px]"
+>
+  {isOutOfStock ? (
+    "OUT"
+  ) : added ? (
+    <span className="flex items-center justify-center gap-0.5 text-emerald-400">
+      ADDED ✓
+    </span>
+  ) : (
+    "ADD"
+  )}
+</button>
+
   )
 }
